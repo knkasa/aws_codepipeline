@@ -1,0 +1,26 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging into Amazon ECR...
+      - aws --version
+      - ECR_REPO_URI=<your-ecr-repo-uri>  # Replace with your actual ECR repo URI
+      - $(aws ecr get-login-password --region <your-region>) | docker login --username AWS --password-stdin $ECR_REPO_URI
+      - IMAGE_TAG=$(date +%Y%m%d%H%M%S)
+
+  build:
+    commands:
+      - echo Building the Docker image...
+      - docker build -t $ECR_REPO_URI:latest .
+      - docker tag $ECR_REPO_URI:latest $ECR_REPO_URI:$IMAGE_TAG
+
+  post_build:
+    commands:
+      - echo Pushing Docker image to ECR...
+      - docker push $ECR_REPO_URI:latest
+      - docker push $ECR_REPO_URI:$IMAGE_TAG
+      - echo Writing image definitions file...
+      - printf '[{"name":"<your-container-name>","imageUri":"%s"}]' $ECR_REPO_URI:latest > imagedefinitions.json
+artifacts:
+  files: imagedefinitions.json
