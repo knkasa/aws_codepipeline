@@ -1,4 +1,4 @@
-# buildspec.yml - Place this in your GitHub repository root
+# Example using environment variable.
 version: 0.2
 
 phases:
